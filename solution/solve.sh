@@ -102,5 +102,5 @@ open scoped BigOperators
     rw [hzero]
     simp [P]
   rw [hcoeff, hsum] at h
-  exact h
+  exact h.symm
 LEAN
