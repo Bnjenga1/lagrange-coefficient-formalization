@@ -1,4 +1,4 @@
-name: Kepler Verifier Check
+name: Kepler Full Verifier
 
 on:
   workflow_dispatch:
@@ -15,9 +15,14 @@ jobs:
         run: |
           docker build -t lagrange-env ./environment
 
+      - name: Build verifier environment
+        run: |
+          docker build -t lagrange-tests ./tests
+
       - name: Generate Solution.lean
         run: |
-          mkdir -p out
+          rm -rf out logs
+          mkdir -p out logs
 
           docker run --rm \
             --user root \
@@ -32,17 +37,20 @@ jobs:
               cp /app/Solution.lean /out/Solution.lean
             '
 
-      - name: Compile generated solution
+      - name: Run actual verifier
         run: |
           docker run --rm \
-            --user lean \
-            -v "$PWD/out/Solution.lean:/app/mathproject/Solution.lean:ro" \
-            lagrange-env \
-            bash -lc '
-              cd /app/mathproject
-              lake env lean Solution.lean
-            '
+            --user root \
+            -v "$PWD/out/Solution.lean:/app/Solution.lean:ro" \
+            -v "$PWD/logs:/logs/verifier" \
+            lagrange-tests \
+            /tests/test.sh
 
-      - name: Show result
+      - name: Show reward and verifier output
+        if: always()
         run: |
-          echo "Solution.lean was generated and compiled successfully."
+          echo "===== REWARD ====="
+          cat logs/verifier/reward.txt 2>/dev/null || true
+
+          echo "===== CTRF ====="
+          cat logs/verifier/ctrf.json 2>/dev/null || true
