@@ -1,0 +1,47 @@
+schema_version = "1.4"
+
+artifacts = ["/app/Solution.lean"]
+
+[task]
+name = "afterquery/lagrange-coefficient-formalization"
+description = "Formalize a general barycentric coefficient identity for finite Lagrange interpolation in Lean and derive two nontrivial corollaries."
+authors = [{ name = "Brian Njenga Mwaura", email = "info@brianmwaura.com" }]
+keywords = ["Lean", "Mathlib", "Lagrange interpolation", "barycentric interpolation", "polynomial coefficients", "formal verification"]
+
+[metadata]
+author_name = "Brian Njenga Mwaura"
+author_email = "info@brianmwaura.com"
+author_organization = "Independent Researcher"
+author_profile = "https://www.linkedin.com/in/brian-mwaura1/"
+research_advisor = ""
+referred_by = ""
+conflicts_of_interest = "None"
+domain = "mathematical-sciences"
+field = "formal-mathematics"
+subfield = "Lean proof engineering for polynomial interpolation and finite combinatorics"
+category = "Science"
+subcategory = "Formal Mathematics & Theorem Proving"
+tags = ["Lean 4", "Mathlib", "formal theorem proving", "polynomial interpolation", "finite combinatorics", "Vieta"]
+expert_time_estimate_hours = 5.0
+relevant_experience = "The author has a BSc in Statistics and hands-on experience with mathematical and statistical programming in Python and R, together with repeated machine-evaluated AI tasks requiring exact specifications, reproducible artifacts, and verifier-oriented quality checks. The benchmark applies that mathematical background to a Lean problem built around polynomial interpolation, finite sums, and elementary symmetric coefficients without claiming prior professional Lean specialization."
+difficulty_explanation = "The data is synthetic in the sense that there is no external dataset: all mathematical ground truth is fixed by the theorem statements and the Lean kernel. The difficulty comes from coordinating Lagrange interpolation, polynomial coefficient extraction, Vieta-style coefficient identities for finite products of linear factors, erased finset cardinalities, powerset-card sums, and dependent finite-sum rewrites. The three required declarations form a dependency chain, and a proof that only matches the surface theorem statement without establishing the mathematics is rejected by kernel checking and axiom inspection."
+solution_explanation = "A reference development rewrites the polynomial using the unique Lagrange interpolant, expands that interpolant as the barycentric finite sum, extracts the requested coefficient termwise, and uses Mathlib's exact coefficient identity for products of factors X - C(v j). The specialization then normalizes card(s.erase i) - (card s - 3) to 2. The moment identity applies the same coefficient formula to a monomial and separates the terminal exponent from the lower moments."
+verification_explanation = "The verifier copies only /app/Solution.lean into a clean Mathlib project. A sealed Lean checker independently checks the exact types of all three declarations and compiles concrete instantiations. The verifier also inspects the transitive axiom set of each theorem and rejects sorryAx, custom axioms, unsafe/native shortcuts, and direct use of the two Mathlib results explicitly excluded by the task. Ground truth is the mathematical theorem specification itself, not an agent-writable file."
+
+[verifier]
+timeout_sec = 1800.0
+environment_mode = "separate"
+
+[verifier.environment]
+network_mode = "no-network"
+
+[agent]
+timeout_sec = 21600.0
+
+[environment]
+build_timeout_sec = 900.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 20480
+gpus = 0
+network_mode = "public"
