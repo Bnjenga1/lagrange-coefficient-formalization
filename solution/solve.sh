@@ -4,6 +4,7 @@ cat > /app/Solution.lean <<'LEAN'
 import Mathlib
 
 set_option maxRecDepth 100000
+set_option maxRecDepth 100000
 
 open scoped BigOperators
 
@@ -21,60 +22,47 @@ theorem lagrange_coeff_formula
             ∑ t ∈ (s.erase i).powersetCard ((s.erase i).card - k),
               ∏ a ∈ t, v a) := by
 
-  have hinterp := Lagrange.eq_interpolate hvs hP
+  have hinterp :
+      P = (Lagrange.interpolate s v)
+        (fun i => Polynomial.eval (v i) P) :=
+    Lagrange.eq_interpolate hvs hP
 
-  calc
-    P.coeff k =
-        ((Lagrange.interpolate s v)
-          (fun i => Polynomial.eval (v i) P)).coeff k := by
-      rw [hinterp]
-    _ =
-        (∑ i ∈ s,
-          (Polynomial.C
-            (Polynomial.eval (v i) P /
-              ∏ j ∈ s.erase i, (v i - v j))) *
-            ∏ j ∈ s.erase i,
-              (Polynomial.X - Polynomial.C (v j))).coeff k := by
-      rw [Lagrange.interpolate_eq_sum]
-    _ =
-        ∑ i ∈ s,
-          (Polynomial.eval (v i) P /
-            ∏ j ∈ s.erase i, (v i - v j)) *
-            ((-1 : F) ^ ((s.erase i).card - k) *
-              ∑ t ∈ (s.erase i).powersetCard
-                ((s.erase i).card - k),
-                ∏ a ∈ t, v a) := by
+  have hcoeff :=
+    congrArg (fun Q : Polynomial F => Q.coeff k) hinterp
 
-      rw [Polynomial.finsetSum_coeff]
-      simp only [Polynomial.coeff_C_mul]
+  rw [Lagrange.interpolate_eq_sum] at hcoeff
+  rw [Polynomial.finsetSum_coeff] at hcoeff
+  simp only [Polynomial.coeff_C_mul] at hcoeff
 
-      refine Finset.sum_congr rfl ?_
-      intro i hi
+  rw [hcoeff]
 
-      have hk' : k ≤ (s.erase i).card := by
-        rw [Finset.card_erase_of_mem hi]
-        exact Nat.le_pred_of_lt hk
+  refine Finset.sum_congr rfl ?_
+  intro i hi
 
-      have hk'' : k ≤ Multiset.card ((s.erase i).val.map v) := by
-        rw [Multiset.card_map]
-        exact hk'
+  have hk' : k ≤ (s.erase i).card := by
+    rw [Finset.card_erase_of_mem hi]
+    exact Nat.le_pred_of_lt hk
 
-      have hcoeff :=
-        Multiset.prod_X_sub_C_coeff
-          ((s.erase i).val.map v) hk''
+  have hk'' : k ≤ Multiset.card ((s.erase i).val.map v) := by
+    rw [Multiset.card_map]
+    exact hk'
 
-      have hprod :
-          (∏ j ∈ s.erase i,
-            (Polynomial.X - Polynomial.C (v j))).coeff k =
-            (-1 : F) ^ ((s.erase i).card - k) *
-              ∑ t ∈ (s.erase i).powersetCard
-                ((s.erase i).card - k),
-                ∏ a ∈ t, v a := by
-        simpa [Finset.prod_eq_multiset_prod,
-          Multiset.map_map, Function.comp_def,
-          Multiset.card_map, Finset.esymm_map_val] using hcoeff
+  have hprod :
+      (∏ j ∈ s.erase i,
+        (Polynomial.X - Polynomial.C (v j))).coeff k =
+        (-1 : F) ^ ((s.erase i).card - k) *
+          ∑ t ∈ (s.erase i).powersetCard ((s.erase i).card - k),
+            ∏ a ∈ t, v a := by
 
-      rw [hprod]
+    have hcoeff' :=
+      Multiset.prod_X_sub_C_coeff
+        ((s.erase i).val.map v) hk''
+
+    simpa [Finset.prod_eq_multiset_prod,
+      Multiset.map_map, Function.comp_def,
+      Multiset.card_map, Finset.esymm_map_val] using hcoeff'
+
+  rw [hprod]
 
 theorem lagrange_coeff_card_sub_three
     {ι F : Type*} [DecidableEq ι] [Field F]
@@ -122,9 +110,10 @@ theorem barycentric_moment_identity
   let P : Polynomial F := Polynomial.X ^ m
 
   have hP : P.degree < (s.card : WithBot ℕ) := by
-    simpa [P, Polynomial.degree_X_pow] using
-      (WithBot.coe_lt_coe.mpr hm :
-        (m : WithBot ℕ) < (s.card : WithBot ℕ))
+    simpa only [P, Polynomial.degree_X_pow,
+      WithBot.coe_lt_coe] using
+      (show (m : WithBot ℕ) < (s.card : WithBot ℕ) from
+        WithBot.coe_lt_coe.mpr hm)
 
   have hk : s.card - 1 < s.card := by
     omega
@@ -139,9 +128,15 @@ theorem barycentric_moment_identity
 
     by_cases hlast : m = s.card - 1
 
-    · simp [P, hlast]
+    · subst hlast
+      simp only [P, Polynomial.coeff_X_pow]
+      simp
 
-    · simp [P, hlast, eq_comm]
+    · have hne : s.card - 1 ≠ m := by
+        intro hEq
+        exact hlast hEq.symm
+      simp only [P, Polynomial.coeff_X_pow]
+      simp [hlast, hne]
 
   have hsum :
       (∑ i ∈ s,
@@ -164,7 +159,17 @@ theorem barycentric_moment_identity
       omega
 
     rw [hzero]
-    simp [P]
+
+    change
+      (Polynomial.eval (v i) (Polynomial.X ^ m) /
+        ∏ j ∈ s.erase i, (v i - v j)) *
+        (1 * ∑ t ∈ (s.erase i).powersetCard 0,
+          ∏ a ∈ t, v a)
+      =
+      (v i) ^ m /
+        ∏ j ∈ s.erase i, (v i - v j)
+
+    simp
 
   rw [hcoeff, hsum] at h
   exact h.symm
