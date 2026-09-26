@@ -27,6 +27,7 @@ jobs:
           mkdir -p out logs
 
           docker run --rm \
+            --user root \
             -v "$PWD/solution:/solution:ro" \
             -v "$PWD/out:/out" \
             lagrange-env \
@@ -41,6 +42,7 @@ jobs:
       - name: Run Kepler-style verifier
         run: |
           docker run --rm \
+            --user root \
             -v "$PWD/out/Solution.lean:/app/Solution.lean:ro" \
             -v "$PWD/logs:/logs/verifier" \
             lagrange-tests \
