@@ -22,7 +22,7 @@ jobs:
       - name: Generate Solution.lean
         run: |
           rm -rf out logs
-          mkdir -p out logs
+          mkdir -p out logs/verifier
 
           docker run --rm \
             --user root \
@@ -37,19 +37,19 @@ jobs:
               cp /app/Solution.lean /out/Solution.lean
             '
 
-      - name: Run actual verifier
+      - name: Run actual Kepler verifier
         run: |
           docker run --rm \
             --user root \
             -v "$PWD/out/Solution.lean:/app/Solution.lean:ro" \
-            -v "$PWD/logs:/logs/verifier" \
+            -v "$PWD/logs/verifier:/logs/verifier" \
             lagrange-tests \
             bash -lc '
               chmod +x /tests/test.sh
               /tests/test.sh
             '
 
-      - name: Show reward and verifier output
+      - name: Show verifier result
         if: always()
         run: |
           echo "===== REWARD ====="
@@ -57,3 +57,13 @@ jobs:
 
           echo "===== CTRF ====="
           cat logs/verifier/ctrf.json 2>/dev/null || true
+
+          echo "===== VERIFIER FILES ====="
+          find logs -type f -maxdepth 3 -print
+
+      - name: Require reward
+        run: |
+          test -f logs/verifier/reward.txt
+          reward=$(cat logs/verifier/reward.txt)
+          echo "Final reward: $reward"
+          test "$reward" = "1"
