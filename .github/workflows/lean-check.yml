@@ -28,4 +28,4 @@ jobs:
           docker run --rm \
             -v "$PWD/out:/out" \
             lagrange-env \
-            bash -lc 'lean --print-prefix; echo "---"; ls -la /home/lean/.elan/toolchains/leanprover--lean4---v4.34.1/lib/lean | head -30'
+            bash -lc 'which lake; which lean; find /home/lean -maxdepth 4 -type d -iname "*mathlib*" 2>/dev/null | head -30'
