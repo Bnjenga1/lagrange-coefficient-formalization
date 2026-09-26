@@ -4,5 +4,11 @@ USER root
 RUN mkdir -p /app && chown -R lean:lean /app
 USER lean
 
+WORKDIR /app
+RUN lake +leanprover-community/mathlib4:lean-toolchain new mathproject math
+
+WORKDIR /app/mathproject
+RUN lake exe cache get
+
 ENTRYPOINT []
 CMD ["sleep", "infinity"]
