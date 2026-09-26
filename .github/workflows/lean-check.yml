@@ -17,6 +17,7 @@ jobs:
       - name: Generate reference solution
         run: |
           mkdir -p out
+          chmod 777 out
           docker run --rm \
            -v "$PWD/solution:/solution" \
            -v "$PWD/out:/out" \
