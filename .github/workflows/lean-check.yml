@@ -28,4 +28,4 @@ jobs:
           docker run --rm \
             -v "$PWD/out:/out" \
             lagrange-env \
-            bash -lc 'cd /mathlib && lake env lean /out/Solution.lean'
+            bash -lc 'cd /mathlib && lake env lean -o /tmp/Solution.olean /out/Solution.lean'
