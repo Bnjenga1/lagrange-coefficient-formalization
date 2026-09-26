@@ -11,12 +11,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Test Docker
+      - name: Build solution environment
         run: |
-          docker --version
           docker build -t lagrange-env ./environment
 
-      - name: Run solution
+      - name: Generate Solution.lean
         run: |
           mkdir -p out
 
@@ -33,7 +32,17 @@ jobs:
               cp /app/Solution.lean /out/Solution.lean
             '
 
-      - name: Show solution
+      - name: Compile generated solution
         run: |
-          echo "Solution generated:"
-          ls -lh out/
+          docker run --rm \
+            --user lean \
+            -v "$PWD/out/Solution.lean:/app/mathproject/Solution.lean:ro" \
+            lagrange-env \
+            bash -lc '
+              cd /app/mathproject
+              lake env lean Solution.lean
+            '
+
+      - name: Show result
+        run: |
+          echo "Solution.lean was generated and compiled successfully."
