@@ -18,11 +18,10 @@ jobs:
         run: |
           mkdir -p out
           docker run --rm \
-            -v "$PWD/solution:/solution" \
-            -v "$PWD/out:/out" \
-            lagrange-env \
-            bash -lc 'bash /solution/solve.sh && cp /app/Solution.lean /out/Solution.lean'
-
+           -v "$PWD/solution:/solution" \
+           -v "$PWD/out:/out" \
+           lagrange-env \
+           bash -lc 'bash /solution/solve.sh && cat /app/Solution.lean > /out/Solution.lean'
       - name: Compile reference solution
         run: |
           docker run --rm \
