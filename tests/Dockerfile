@@ -31,6 +31,8 @@ RUN rm -rf /mathlib && \
 RUN mkdir -p /mathlib/Submission && \
     chown -R lean:lean /mathlib/Submission
 
+RUN ln -sf /home/lean/.elan/bin/lake /usr/local/bin/lake
+
 USER lean
 
 WORKDIR /mathlib
