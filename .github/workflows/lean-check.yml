@@ -1,0 +1,56 @@
+name: Kepler Verifier Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build solution environment
+        run: |
+          docker build -t lagrange-env ./environment
+
+      - name: Build verifier environment
+        run: |
+          docker build -t lagrange-tests ./tests
+
+      - name: Run reference solution
+        run: |
+          rm -rf out logs
+          mkdir -p out logs
+
+          docker run --rm \
+            -v "$PWD/solution:/solution:ro" \
+            -v "$PWD/out:/out" \
+            lagrange-env \
+            bash -lc '
+              cp /solution/solve.sh /app/solve.sh
+              chmod +x /app/solve.sh
+              /app/solve.sh
+              test -f /app/Solution.lean
+              cp /app/Solution.lean /out/Solution.lean
+            '
+
+      - name: Run Kepler-style verifier
+        run: |
+          docker run --rm \
+            -v "$PWD/out/Solution.lean:/app/Solution.lean:ro" \
+            -v "$PWD/logs:/logs/verifier" \
+            lagrange-tests \
+            /tests/test.sh
+
+      - name: Show verifier result
+        if: always()
+        run: |
+          echo "===== REWARD ====="
+          cat logs/verifier/reward.txt 2>/dev/null || true
+
+          echo "===== CTRF REPORT ====="
+          cat logs/verifier/ctrf.json 2>/dev/null || true
