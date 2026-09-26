@@ -49,7 +49,7 @@ jobs:
               /tests/test.sh
             '
 
-      - name: Show verifier result
+      - name: Show reward
         if: always()
         run: |
           echo "===== REWARD ====="
@@ -58,10 +58,38 @@ jobs:
           echo "===== CTRF ====="
           cat logs/verifier/ctrf.json 2>/dev/null || true
 
-          echo "===== VERIFIER FILES ====="
-          find logs -type f -maxdepth 3 -print
+      - name: Diagnose verifier failure
+        if: always()
+        run: |
+          reward=$(cat logs/verifier/reward.txt 2>/dev/null || echo "missing")
 
-      - name: Require reward
+          if [ "$reward" != "1" ]; then
+            echo "========================================"
+            echo "REWARD IS NOT 1"
+            echo "Running pytest in verbose diagnostic mode"
+            echo "========================================"
+
+            docker run --rm \
+              --user root \
+              -v "$PWD/out/Solution.lean:/app/Solution.lean:ro" \
+              -v "$PWD/logs:/logs" \
+              lagrange-tests \
+              bash -lc '
+                mkdir -p /mathlib/Submission
+                cp /app/Solution.lean /mathlib/Submission/Solution.lean
+                cp /tests/Checker.lean /mathlib/Submission/Checker.lean
+
+                cd /mathlib
+
+                pytest -vv /tests/test_submission.py
+              '
+          else
+            echo "========================================"
+            echo "SUCCESS: VERIFIER REWARD IS 1"
+            echo "========================================"
+          fi
+
+      - name: Require reward 1
         run: |
           test -f logs/verifier/reward.txt
           reward=$(cat logs/verifier/reward.txt)
