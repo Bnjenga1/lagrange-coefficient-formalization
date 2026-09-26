@@ -28,4 +28,4 @@ jobs:
           docker run --rm \
             -v "$PWD/out:/out" \
             lagrange-env \
-            bash -lc 'find / -name lakefile.toml -o -name lakefile.lean 2>/dev/null | head -20'
+             bash -lc 'find / -type f -name "Mathlib.olean" 2>/dev/null | head -20'
