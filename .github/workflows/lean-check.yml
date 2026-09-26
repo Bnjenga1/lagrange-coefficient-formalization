@@ -44,7 +44,10 @@ jobs:
             -v "$PWD/out/Solution.lean:/app/Solution.lean:ro" \
             -v "$PWD/logs:/logs/verifier" \
             lagrange-tests \
-            /tests/test.sh
+            bash -lc '
+              chmod +x /tests/test.sh
+              /tests/test.sh
+            '
 
       - name: Show reward and verifier output
         if: always()
