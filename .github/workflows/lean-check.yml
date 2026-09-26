@@ -11,8 +11,21 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Show Docker version
-        run: docker --version
-
       - name: Build Lean environment
         run: docker build -t lagrange-env ./environment
+
+      - name: Generate reference solution
+        run: |
+          mkdir -p out
+          docker run --rm \
+            -v "$PWD/solution:/solution" \
+            -v "$PWD/out:/out" \
+            lagrange-env \
+            bash -lc 'bash /solution/solve.sh && cp /app/Solution.lean /out/Solution.lean'
+
+      - name: Compile reference solution
+        run: |
+          docker run --rm \
+            -v "$PWD/out:/out" \
+            lagrange-env \
+            bash -lc 'cd /mathlib && lake env lean /out/Solution.lean'
