@@ -13,12 +13,26 @@ RUN python3 -m pip install --no-cache-dir \
 
 COPY . /tests/
 
-RUN mkdir -p /app /logs/verifier /mathlib/Submission && \
-    chown -R lean:lean /app /logs/verifier /mathlib/Submission
-
-ENV PATH="/home/lean/.elan/bin:${PATH}"
-ENV ELAN_HOME="/home/lean/.elan"
+RUN mkdir -p /app /logs/verifier /tmp/kepler-mathlib && \
+    chown -R lean:lean /app /logs/verifier /tmp/kepler-mathlib
 
 USER lean
+
+WORKDIR /tmp
+
+RUN lake +leanprover-community/mathlib4:lean-toolchain new mathproject math
+
+USER root
+
+RUN rm -rf /mathlib && \
+    mv /tmp/mathproject /mathlib && \
+    chown -R lean:lean /mathlib
+
+RUN mkdir -p /mathlib/Submission && \
+    chown -R lean:lean /mathlib/Submission
+
+USER lean
+
+WORKDIR /mathlib
 
 ENTRYPOINT []
