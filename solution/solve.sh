@@ -23,10 +23,8 @@ open scoped BigOperators
   simp only [Polynomial.coeff_C_mul]
   refine Finset.sum_congr rfl ?_
   intro i hi
-  have hk' : k ≤ (s.erase i).card := by
-    rw [Finset.card_erase_of_mem hi]
-    exact Nat.le_pred_of_lt hk
   have hk'' : k ≤ Multiset.card ((s.erase i).val.map v) := by
+    rw [Multiset.card_map]
     simpa using hk'
   have hprod :
       (∏ j ∈ s.erase i, (Polynomial.X - Polynomial.C (v j))).coeff k =
