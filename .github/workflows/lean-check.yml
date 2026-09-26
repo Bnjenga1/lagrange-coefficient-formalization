@@ -28,4 +28,4 @@ jobs:
           docker run --rm \
             -v "$PWD/out:/out" \
             lagrange-env \
-            bash -lc 'which lake; which lean; find /home/lean -maxdepth 4 -type d -iname "*mathlib*" 2>/dev/null | head -30'
+           bash -lc 'echo "LEAN_PATH=$LEAN_PATH"; echo "---"; find / -type d -name "Mathlib" 2>/dev/null | head -20; echo "---"; find / -type f -name "Mathlib.olean" 2>/dev/null | head -20'
