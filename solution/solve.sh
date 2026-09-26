@@ -1,4 +1,3 @@
-```sh id="m4q7zs"
 #!/bin/sh
 set -eu
 
@@ -177,4 +176,3 @@ theorem barycentric_moment_identity
   exact h.symm
 
 LEAN
-```
