@@ -1,4 +1,4 @@
-```sh
+```sh id="m4q7zs"
 #!/bin/sh
 set -eu
 
@@ -53,14 +53,20 @@ theorem lagrange_coeff_formula
     Multiset.prod_X_sub_C_coeff
       ((s.erase i).val.map v) hk''
 
-  have hcoeff'' :
+  have hcoeff'' := hcoeff'
+
+  rw [Multiset.card_map] at hcoeff''
+
+  have hcoeff''' :
       (Multiset.map
           (fun j => Polynomial.X - Polynomial.C (v j))
           (s.erase i).val).prod.coeff k =
         (-1 : F) ^ ((s.erase i).val.card - k) *
           (Multiset.map v (s.erase i).val).esymm
             ((s.erase i).val.card - k) := by
-    simpa only [Multiset.map_map, Function.comp_def] using hcoeff'
+
+    rw [← Multiset.map_map]
+    simpa only [Function.comp_def] using hcoeff''
 
   have hprod :
       (∏ j ∈ s.erase i,
@@ -71,7 +77,7 @@ theorem lagrange_coeff_formula
 
     rw [Finset.prod_eq_multiset_prod]
     rw [← Finset.esymm_map_val]
-    exact hcoeff''
+    exact hcoeff'''
 
   rw [hprod]
 
