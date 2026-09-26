@@ -65,7 +65,8 @@ theorem lagrange_coeff_formula
     simpa only [
       Multiset.map_map,
       Function.comp_def,
-      Multiset.card_map
+      Multiset.card_map,
+      Finset.card_def
     ] using hcoeff'
 
   rw [hprod]
@@ -115,4 +116,55 @@ theorem barycentric_moment_identity
   let P : Polynomial F := Polynomial.X ^ m
 
   have hP : P.degree < (s.card : WithBot ℕ) := by
-    simpa [P, Polynomial.d]()
+    simpa [P, Polynomial.degree_X_pow] using
+      (WithBot.coe_lt_coe.mpr hm :
+        (m : WithBot ℕ) < (s.card : WithBot ℕ))
+
+  have hk : s.card - 1 < s.card := by omega
+
+  have h :=
+    lagrange_coeff_formula s v P hvs hP
+      (k := s.card - 1) hk
+
+  have hcoeff :
+      P.coeff (s.card - 1) =
+        if m = s.card - 1 then 1 else 0 := by
+
+    by_cases hlast : m = s.card - 1
+
+    · simp [P, hlast]
+
+    · have hne : s.card - 1 ≠ m := by
+        intro hEq
+        exact hlast hEq.symm
+
+      simp [P, hlast, hne]
+
+  have hsum :
+      (∑ i ∈ s,
+        (Polynomial.eval (v i) P /
+          ∏ j ∈ s.erase i, (v i - v j)) *
+          ((-1 : F) ^ ((s.erase i).card - (s.card - 1)) *
+            ∑ t ∈ (s.erase i).powersetCard
+              ((s.erase i).card - (s.card - 1)),
+              ∏ a ∈ t, v a)) =
+        ∑ i ∈ s,
+          (v i) ^ m /
+            ∏ j ∈ s.erase i, (v i - v j) := by
+
+    refine Finset.sum_congr rfl ?_
+    intro i hi
+
+    have hzero :
+        (s.erase i).card - (s.card - 1) = 0 := by
+      rw [Finset.card_erase_of_mem hi]
+      omega
+
+    rw [hzero]
+
+    simp [P]
+
+  rw [hcoeff, hsum] at h
+  exact h.symm
+
+LEAN
