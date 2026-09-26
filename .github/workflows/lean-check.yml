@@ -37,7 +37,7 @@ jobs:
               cp /app/Solution.lean /out/Solution.lean
             '
 
-      - name: Run actual Kepler verifier
+      - name: Run verifier and show failure
         run: |
           docker run --rm \
             --user root \
@@ -46,48 +46,32 @@ jobs:
             lagrange-tests \
             bash -lc '
               chmod +x /tests/test.sh
+
               /tests/test.sh
+
+              echo "===== REWARD ====="
+              cat /logs/verifier/reward.txt 2>/dev/null || true
+
+              echo "===== CTRF ====="
+              cat /logs/verifier/ctrf.json 2>/dev/null || true
+
+              reward=$(cat /logs/verifier/reward.txt 2>/dev/null || echo "missing")
+
+              if [ "$reward" != "1" ]; then
+                echo "===== DIRECT PYTEST DIAGNOSTIC ====="
+                cd /mathlib
+                pytest -vv /tests/test_submission.py
+              fi
             '
 
-      - name: Show reward
+      - name: Show final reward
         if: always()
         run: |
-          echo "===== REWARD ====="
+          echo "===== FINAL REWARD ====="
           cat logs/verifier/reward.txt 2>/dev/null || true
 
-          echo "===== CTRF ====="
+          echo "===== FINAL CTRF ====="
           cat logs/verifier/ctrf.json 2>/dev/null || true
-
-      - name: Diagnose verifier failure
-        if: always()
-        run: |
-          reward=$(cat logs/verifier/reward.txt 2>/dev/null || echo "missing")
-
-          if [ "$reward" != "1" ]; then
-            echo "========================================"
-            echo "REWARD IS NOT 1"
-            echo "Running pytest in verbose diagnostic mode"
-            echo "========================================"
-
-            docker run --rm \
-              --user root \
-              -v "$PWD/out/Solution.lean:/app/Solution.lean:ro" \
-              -v "$PWD/logs:/logs" \
-              lagrange-tests \
-              bash -lc '
-                mkdir -p /mathlib/Submission
-                cp /app/Solution.lean /mathlib/Submission/Solution.lean
-                cp /tests/Checker.lean /mathlib/Submission/Checker.lean
-
-                cd /mathlib
-
-                pytest -vv /tests/test_submission.py
-              '
-          else
-            echo "========================================"
-            echo "SUCCESS: VERIFIER REWARD IS 1"
-            echo "========================================"
-          fi
 
       - name: Require reward 1
         run: |
