@@ -16,12 +16,8 @@ COPY . /tests/
 RUN mkdir -p /app /logs/verifier /mathlib/Submission && \
     chown -R lean:lean /app /logs/verifier /mathlib/Submission
 
-RUN LAKE_PATH="$(find / -type f -name lake -perm -111 2>/dev/null | head -n 1)" && \
-    echo "Found lake at: $LAKE_PATH" && \
-    test -n "$LAKE_PATH" && \
-    ln -sf "$LAKE_PATH" /usr/local/bin/lake
-
-RUN /usr/local/bin/lake --version
+ENV PATH="/home/lean/.elan/bin:${PATH}"
+ENV ELAN_HOME="/home/lean/.elan"
 
 USER lean
 
