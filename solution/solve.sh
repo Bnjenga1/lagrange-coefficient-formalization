@@ -1,5 +1,7 @@
+```sh
 #!/bin/sh
 set -eu
+
 cat > /app/Solution.lean <<'LEAN'
 import Mathlib
 
@@ -57,7 +59,11 @@ theorem lagrange_coeff_formula
         (-1 : F) ^ ((s.erase i).card - k) *
           ∑ t ∈ (s.erase i).powersetCard ((s.erase i).card - k),
             ∏ a ∈ t, v a := by
-    convert hcoeff' using 1
+
+    rw [Finset.prod_eq_multiset_prod]
+    rw [← Finset.esymm_map_val]
+
+    simpa only [Multiset.card_map] using hcoeff'
 
   rw [hprod]
 
@@ -157,3 +163,4 @@ theorem barycentric_moment_identity
   exact h.symm
 
 LEAN
+```
