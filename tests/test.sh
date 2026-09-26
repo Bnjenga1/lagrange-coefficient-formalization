@@ -19,7 +19,7 @@ finish() {
 trap finish EXIT
 
 set +e
-pytest -q --ctrf=/logs/verifier/ctrf.json /tests/test_submission.py
+pytest -vv --ctrf=/logs/verifier/ctrf.json /tests/test_submission.py
 rc=$?
 set -e
 
