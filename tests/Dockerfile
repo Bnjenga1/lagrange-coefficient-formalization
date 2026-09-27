@@ -31,6 +31,8 @@ RUN rm -rf /mathlib && \
 RUN mkdir -p /mathlib/Submission && \
     chown -R lean:lean /mathlib/Submission
 
+RUN git config --global --add safe.directory /mathlib/.lake/packages/mathlib
+
 RUN ln -sf /home/lean/.elan/bin/lake /usr/local/bin/lake
 
 USER lean
